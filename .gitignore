@@ -1,0 +1,4 @@
+.idea
+*.pyc
+dev_testing/
+.runtime/

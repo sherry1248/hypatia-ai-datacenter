@@ -1,0 +1,65 @@
+finding_id,scenario,workload,policy,metric,finding_type,baseline_value,compared_value,absolute_change,relative_change_percent,statement
+F0001,single,burst,completion_time,placement_success_ratio,percentage_point_change,1.0,1.0,0.0,,단일 장애 조건에서 completion_time 정책의 배치 성공률은(는) 정상 대비 +0.00%p 변화했습니다.
+F0002,single,burst,completion_time,jobs_unplaced,absolute_change_zero_baseline,0.0,0.0,0.0,,"단일 장애 조건에서 completion_time 정책의 평균 미배치 작업 수은(는) 정상 대비 절대 변화 +0, 상대 변화 계산 불가(정상 기준 0) 변화했습니다."
+F0003,single,burst,completion_time,deadline_met_ratio,percentage_point_change,0.13333333333333333,0.11333333333333333,-0.020000000000000004,,단일 장애 조건에서 completion_time 정책의 마감 준수율은(는) 정상 대비 -2.00%p 변화했습니다.
+F0004,single,burst,completion_time,average_queue_wait_seconds,percentage_change,22.4237941851374,22.4945278050021,0.07073361986470061,0.3154400155509062,단일 장애 조건에서 completion_time 정책의 평균 큐 대기시간은(는) 정상 대비 +0.32% 변화했습니다.
+F0005,single,burst,completion_time,p95_queue_wait_seconds,percentage_change,44.3945354799648,44.3945354799648,0.0,0.0,단일 장애 조건에서 completion_time 정책의 P95 큐 대기시간은(는) 정상 대비 +0.00% 변화했습니다.
+F0006,single,burst,completion_time,average_total_time_seconds,percentage_change,24.280593675579322,24.370871462620165,0.09027778704084355,0.3718104600203503,단일 장애 조건에서 completion_time 정책의 평균 총 시간은(는) 정상 대비 +0.37% 변화했습니다.
+F0007,single,burst,completion_time,p95_total_time_seconds,percentage_change,46.12932981369982,46.12932981369982,0.0,0.0,단일 장애 조건에서 completion_time 정책의 P95 총 시간은(는) 정상 대비 +0.00% 변화했습니다.
+F0008,single,burst,completion_time,node_load_imbalance_ratio,percentage_change,0.20016659728003233,0.12569805089976535,-0.07446854638026698,-37.20328336105238,단일 장애 조건에서 completion_time 정책의 노드 부하 불균형은(는) 정상 대비 -37.20% 변화했습니다.
+F0009,single,burst,compute_aware,placement_success_ratio,percentage_point_change,1.0,1.0,0.0,,단일 장애 조건에서 compute_aware 정책의 배치 성공률은(는) 정상 대비 +0.00%p 변화했습니다.
+F0010,single,burst,compute_aware,jobs_unplaced,absolute_change_zero_baseline,0.0,0.0,0.0,,"단일 장애 조건에서 compute_aware 정책의 평균 미배치 작업 수은(는) 정상 대비 절대 변화 +0, 상대 변화 계산 불가(정상 기준 0) 변화했습니다."
+F0011,single,burst,compute_aware,deadline_met_ratio,percentage_point_change,0.11666666666666667,0.09,-0.026666666666666672,,단일 장애 조건에서 compute_aware 정책의 마감 준수율은(는) 정상 대비 -2.67%p 변화했습니다.
+F0012,single,burst,compute_aware,average_queue_wait_seconds,percentage_change,54.645296987974824,67.88532022119828,13.24002323322346,24.229026033360277,단일 장애 조건에서 compute_aware 정책의 평균 큐 대기시간은(는) 정상 대비 +24.23% 변화했습니다.
+F0013,single,burst,compute_aware,p95_queue_wait_seconds,percentage_change,133.7101372081369,174.8808198229611,41.17068261482419,30.7909957124169,단일 장애 조건에서 compute_aware 정책의 P95 큐 대기시간은(는) 정상 대비 +30.79% 변화했습니다.
+F0014,single,burst,compute_aware,average_total_time_seconds,percentage_change,56.429826720824394,69.61180418980881,13.181977468984414,23.359946742703443,단일 장애 조건에서 compute_aware 정책의 평균 총 시간은(는) 정상 대비 +23.36% 변화했습니다.
+F0015,single,burst,compute_aware,p95_total_time_seconds,percentage_change,134.67307262692253,175.7718504933663,41.098777866443754,30.51744277068472,단일 장애 조건에서 compute_aware 정책의 P95 총 시간은(는) 정상 대비 +30.52% 변화했습니다.
+F0016,single,burst,compute_aware,node_load_imbalance_ratio,percentage_change,0.7094129028053173,0.78029908795709,0.0708861851517727,9.992232291160603,단일 장애 조건에서 compute_aware 정책의 노드 부하 불균형은(는) 정상 대비 +9.99% 변화했습니다.
+F0017,single,burst,compute_only,placement_success_ratio,percentage_point_change,1.0,1.0,0.0,,단일 장애 조건에서 compute_only 정책의 배치 성공률은(는) 정상 대비 +0.00%p 변화했습니다.
+F0018,single,burst,compute_only,jobs_unplaced,absolute_change_zero_baseline,0.0,0.0,0.0,,"단일 장애 조건에서 compute_only 정책의 평균 미배치 작업 수은(는) 정상 대비 절대 변화 +0, 상대 변화 계산 불가(정상 기준 0) 변화했습니다."
+F0019,single,burst,compute_only,deadline_met_ratio,percentage_point_change,0.14,0.12,-0.020000000000000018,,단일 장애 조건에서 compute_only 정책의 마감 준수율은(는) 정상 대비 -2.00%p 변화했습니다.
+F0020,single,burst,compute_only,average_queue_wait_seconds,percentage_change,22.469906266497855,22.540602091015156,0.07069582451730128,0.314624474525322,단일 장애 조건에서 compute_only 정책의 평균 큐 대기시간은(는) 정상 대비 +0.31% 변화했습니다.
+F0021,single,burst,compute_only,p95_queue_wait_seconds,percentage_change,47.84936468771246,47.84936468771246,0.0,0.0,단일 장애 조건에서 compute_only 정책의 P95 큐 대기시간은(는) 정상 대비 +0.00% 변화했습니다.
+F0022,single,burst,compute_only,average_total_time_seconds,percentage_change,24.365744490126502,24.440380239335425,0.07463574920892313,0.3063142570470895,단일 장애 조건에서 compute_only 정책의 평균 총 시간은(는) 정상 대비 +0.31% 변화했습니다.
+F0023,single,burst,compute_only,p95_total_time_seconds,percentage_change,50.673536897143876,50.68128644313739,0.007749545993512186,0.015293082875272862,단일 장애 조건에서 compute_only 정책의 P95 총 시간은(는) 정상 대비 +0.02% 변화했습니다.
+F0024,single,burst,compute_only,node_load_imbalance_ratio,percentage_change,0.09273618495495704,0.0697614984548545,-0.022974686500102537,-24.77424158785655,단일 장애 조건에서 compute_only 정책의 노드 부하 불균형은(는) 정상 대비 -24.77% 변화했습니다.
+F0025,single,burst,network_only,placement_success_ratio,percentage_point_change,1.0,1.0,0.0,,단일 장애 조건에서 network_only 정책의 배치 성공률은(는) 정상 대비 +0.00%p 변화했습니다.
+F0026,single,burst,network_only,jobs_unplaced,absolute_change_zero_baseline,0.0,0.0,0.0,,"단일 장애 조건에서 network_only 정책의 평균 미배치 작업 수은(는) 정상 대비 절대 변화 +0, 상대 변화 계산 불가(정상 기준 0) 변화했습니다."
+F0027,single,burst,network_only,deadline_met_ratio,percentage_point_change,0.05,0.12666666666666668,0.07666666666666667,,단일 장애 조건에서 network_only 정책의 마감 준수율은(는) 정상 대비 +7.67%p 변화했습니다.
+F0028,single,burst,network_only,average_queue_wait_seconds,percentage_change,186.84788961512868,115.6845311367452,-71.16335847838347,-38.08625220491734,단일 장애 조건에서 network_only 정책의 평균 큐 대기시간은(는) 정상 대비 -38.09% 변화했습니다.
+F0029,single,burst,network_only,p95_queue_wait_seconds,percentage_change,370.4481569111311,266.1208356782289,-104.3273212329022,-28.162461949548817,단일 장애 조건에서 network_only 정책의 P95 큐 대기시간은(는) 정상 대비 -28.16% 변화했습니다.
+F0030,single,burst,network_only,average_total_time_seconds,percentage_change,188.77745481812502,117.34732302362242,-71.4301317945026,-37.838274630474785,단일 장애 조건에서 network_only 정책의 평균 총 시간은(는) 정상 대비 -37.84% 변화했습니다.
+F0031,single,burst,network_only,p95_total_time_seconds,percentage_change,372.44681625167146,266.8452149793662,-105.60160127230529,-28.35347133184988,단일 장애 조건에서 network_only 정책의 P95 총 시간은(는) 정상 대비 -28.35% 변화했습니다.
+F0032,single,burst,network_only,node_load_imbalance_ratio,percentage_change,1.4142135623730951,1.1337548235840058,-0.28045873878908933,-19.831427604079167,단일 장애 조건에서 network_only 정책의 노드 부하 불균형은(는) 정상 대비 -19.83% 변화했습니다.
+F0033,multi,burst,completion_time,placement_success_ratio,percentage_point_change,1.0,0.9633333333333333,-0.036666666666666736,,다중 장애 조건에서 completion_time 정책의 배치 성공률은(는) 정상 대비 -3.67%p 변화했습니다.
+F0034,multi,burst,completion_time,jobs_unplaced,absolute_change_zero_baseline,0.0,11.0,11.0,,"다중 장애 조건에서 completion_time 정책의 평균 미배치 작업 수은(는) 정상 대비 절대 변화 +11, 상대 변화 계산 불가(정상 기준 0) 변화했습니다."
+F0035,multi,burst,completion_time,deadline_met_ratio,percentage_point_change,0.13333333333333333,0.08650519031141868,-0.04682814302191465,,다중 장애 조건에서 completion_time 정책의 마감 준수율은(는) 정상 대비 -4.68%p 변화했습니다.
+F0036,multi,burst,completion_time,average_queue_wait_seconds,percentage_change,22.4237941851374,55.291746056080534,32.86795187094313,146.57622880220765,다중 장애 조건에서 completion_time 정책의 평균 큐 대기시간은(는) 정상 대비 +146.58% 변화했습니다.
+F0037,multi,burst,completion_time,p95_queue_wait_seconds,percentage_change,44.3945354799648,104.08980040708522,59.69526492712042,134.46534417295754,다중 장애 조건에서 completion_time 정책의 P95 큐 대기시간은(는) 정상 대비 +134.47% 변화했습니다.
+F0038,multi,burst,completion_time,average_total_time_seconds,percentage_change,24.280593675579322,57.050549338072116,32.76995566249279,134.96356843799833,다중 장애 조건에서 completion_time 정책의 평균 총 시간은(는) 정상 대비 +134.96% 변화했습니다.
+F0039,multi,burst,completion_time,p95_total_time_seconds,percentage_change,46.12932981369982,105.94254820536644,59.81321839166662,129.66418249133733,다중 장애 조건에서 completion_time 정책의 P95 총 시간은(는) 정상 대비 +129.66% 변화했습니다.
+F0040,multi,burst,completion_time,node_load_imbalance_ratio,percentage_change,0.20016659728003233,0.7346241604902739,0.5344575632102415,267.0063689310446,다중 장애 조건에서 completion_time 정책의 노드 부하 불균형은(는) 정상 대비 +267.01% 변화했습니다.
+F0041,multi,burst,compute_aware,placement_success_ratio,percentage_point_change,1.0,0.9633333333333333,-0.036666666666666736,,다중 장애 조건에서 compute_aware 정책의 배치 성공률은(는) 정상 대비 -3.67%p 변화했습니다.
+F0042,multi,burst,compute_aware,jobs_unplaced,absolute_change_zero_baseline,0.0,11.0,11.0,,"다중 장애 조건에서 compute_aware 정책의 평균 미배치 작업 수은(는) 정상 대비 절대 변화 +11, 상대 변화 계산 불가(정상 기준 0) 변화했습니다."
+F0043,multi,burst,compute_aware,deadline_met_ratio,percentage_point_change,0.11666666666666667,0.11418685121107267,-0.0024798154555940033,,다중 장애 조건에서 compute_aware 정책의 마감 준수율은(는) 정상 대비 -0.25%p 변화했습니다.
+F0044,multi,burst,compute_aware,average_queue_wait_seconds,percentage_change,54.645296987974824,120.01432009380976,65.36902310583494,119.62424345542485,다중 장애 조건에서 compute_aware 정책의 평균 큐 대기시간은(는) 정상 대비 +119.62% 변화했습니다.
+F0045,multi,burst,compute_aware,p95_queue_wait_seconds,percentage_change,133.7101372081369,266.5497268153152,132.83958960717828,99.34892924415783,다중 장애 조건에서 compute_aware 정책의 P95 큐 대기시간은(는) 정상 대비 +99.35% 변화했습니다.
+F0046,multi,burst,compute_aware,average_total_time_seconds,percentage_change,56.429826720824394,121.66372454417368,65.23389782334928,115.60180424809971,다중 장애 조건에서 compute_aware 정책의 평균 총 시간은(는) 정상 대비 +115.60% 변화했습니다.
+F0047,multi,burst,compute_aware,p95_total_time_seconds,percentage_change,134.67307262692253,267.7741090596995,133.101036432777,98.83270191770224,다중 장애 조건에서 compute_aware 정책의 P95 총 시간은(는) 정상 대비 +98.83% 변화했습니다.
+F0048,multi,burst,compute_aware,node_load_imbalance_ratio,percentage_change,0.7094129028053173,1.2076174140547262,0.4982045112494089,70.22772059533996,다중 장애 조건에서 compute_aware 정책의 노드 부하 불균형은(는) 정상 대비 +70.23% 변화했습니다.
+F0049,multi,burst,compute_only,placement_success_ratio,percentage_point_change,1.0,0.9633333333333333,-0.036666666666666736,,다중 장애 조건에서 compute_only 정책의 배치 성공률은(는) 정상 대비 -3.67%p 변화했습니다.
+F0050,multi,burst,compute_only,jobs_unplaced,absolute_change_zero_baseline,0.0,11.0,11.0,,"다중 장애 조건에서 compute_only 정책의 평균 미배치 작업 수은(는) 정상 대비 절대 변화 +11, 상대 변화 계산 불가(정상 기준 0) 변화했습니다."
+F0051,multi,burst,compute_only,deadline_met_ratio,percentage_point_change,0.14,0.08304498269896193,-0.05695501730103808,,다중 장애 조건에서 compute_only 정책의 마감 준수율은(는) 정상 대비 -5.70%p 변화했습니다.
+F0052,multi,burst,compute_only,average_queue_wait_seconds,percentage_change,22.469906266497855,55.34107053756192,32.87116427106406,146.28972582798113,다중 장애 조건에서 compute_only 정책의 평균 큐 대기시간은(는) 정상 대비 +146.29% 변화했습니다.
+F0053,multi,burst,compute_only,p95_queue_wait_seconds,percentage_change,47.84936468771246,110.18877631184814,62.339411624135685,130.28263181965343,다중 장애 조건에서 compute_only 정책의 P95 큐 대기시간은(는) 정상 대비 +130.28% 변화했습니다.
+F0054,multi,burst,compute_only,average_total_time_seconds,percentage_change,24.365744490126502,57.11921516790899,32.75347067778249,134.42425570478613,다중 장애 조건에서 compute_only 정책의 평균 총 시간은(는) 정상 대비 +134.42% 변화했습니다.
+F0055,multi,burst,compute_only,p95_total_time_seconds,percentage_change,50.673536897143876,111.26072692402083,60.587190026876954,119.56376786932321,다중 장애 조건에서 compute_only 정책의 P95 총 시간은(는) 정상 대비 +119.56% 변화했습니다.
+F0056,multi,burst,compute_only,node_load_imbalance_ratio,percentage_change,0.09273618495495704,0.7163047645065231,0.6235685795515661,672.4112921557427,다중 장애 조건에서 compute_only 정책의 노드 부하 불균형은(는) 정상 대비 +672.41% 변화했습니다.
+F0057,multi,burst,network_only,placement_success_ratio,percentage_point_change,1.0,0.9633333333333333,-0.036666666666666736,,다중 장애 조건에서 network_only 정책의 배치 성공률은(는) 정상 대비 -3.67%p 변화했습니다.
+F0058,multi,burst,network_only,jobs_unplaced,absolute_change_zero_baseline,0.0,11.0,11.0,,"다중 장애 조건에서 network_only 정책의 평균 미배치 작업 수은(는) 정상 대비 절대 변화 +11, 상대 변화 계산 불가(정상 기준 0) 변화했습니다."
+F0059,multi,burst,network_only,deadline_met_ratio,percentage_point_change,0.05,0.11418685121107267,0.06418685121107266,,다중 장애 조건에서 network_only 정책의 마감 준수율은(는) 정상 대비 +6.42%p 변화했습니다.
+F0060,multi,burst,network_only,average_queue_wait_seconds,percentage_change,186.84788961512868,120.01432009380976,-66.83356952131892,-35.76897210826594,다중 장애 조건에서 network_only 정책의 평균 큐 대기시간은(는) 정상 대비 -35.77% 변화했습니다.
+F0061,multi,burst,network_only,p95_queue_wait_seconds,percentage_change,370.4481569111311,266.5497268153152,-103.89843009581591,-28.046685658295957,다중 장애 조건에서 network_only 정책의 P95 큐 대기시간은(는) 정상 대비 -28.05% 변화했습니다.
+F0062,multi,burst,network_only,average_total_time_seconds,percentage_change,188.77745481812502,121.66372454417368,-67.11373027395135,-35.551771973306415,다중 장애 조건에서 network_only 정책의 평균 총 시간은(는) 정상 대비 -35.55% 변화했습니다.
+F0063,multi,burst,network_only,p95_total_time_seconds,percentage_change,372.44681625167146,267.7741090596995,-104.67270719197194,-28.10406818493033,다중 장애 조건에서 network_only 정책의 P95 총 시간은(는) 정상 대비 -28.10% 변화했습니다.
+F0064,multi,burst,network_only,node_load_imbalance_ratio,percentage_change,1.4142135623730951,1.2076174140547262,-0.20659614831836892,-14.608553744294039,다중 장애 조건에서 network_only 정책의 노드 부하 불균형은(는) 정상 대비 -14.61% 변화했습니다.

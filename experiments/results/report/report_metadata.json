@@ -1,0 +1,28 @@
+{
+  "source_input_paths": {
+    "runs.csv": "/home/juhyeon/projects/hypatia-master/experiments/results/runs.csv",
+    "summary.csv": "/home/juhyeon/projects/hypatia-master/experiments/results/summary.csv",
+    "policy_ranking.csv": "/home/juhyeon/projects/hypatia-master/experiments/results/policy_ranking.csv",
+    "metadata.json": "/home/juhyeon/projects/hypatia-master/experiments/results/metadata.json"
+  },
+  "source_file_hashes": {
+    "runs.csv": "9eccb151ab557866e50f5d2c9c75bb39660acc1054543ba914ed796e84f21cb1",
+    "summary.csv": "d97ed613c20a00474cec427fcdc132d23150eadd838000e053507b4c779c4cb7",
+    "policy_ranking.csv": "f7115bff14c1151f316a2a232d1fbf1156f7256e2dbe33954e7129d6b7ebdc46",
+    "metadata.json": "c45c10e8ecbd33f08665f8395c0bd03d57070707f10598975799887bf0442d11"
+  },
+  "report_generation_time": "2026-07-28T07:18:41.682706+00:00",
+  "report_generator_version": "1.0.0",
+  "figure_list": [
+    "figures/placement_success_ratio.svg",
+    "figures/jobs_unplaced.svg",
+    "figures/deadline_met_ratio.svg",
+    "figures/p95_queue_wait_seconds.svg",
+    "figures/p95_total_time_seconds.svg",
+    "figures/node_load_imbalance_ratio.svg",
+    "figures/degradation_vs_normal.svg"
+  ],
+  "detected_missing_combinations": [],
+  "successful_run_count": 240,
+  "failed_run_count": 0
+}

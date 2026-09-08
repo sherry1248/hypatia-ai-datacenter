@@ -1,0 +1,49 @@
+AI 작업을 처리하는 우주 데이터센터에서, 전통적인 라우팅 및 작업 스케줄링 알고리즘으로 장애와 연산 부하에 대응하는 시스템
+
+
+AI는 강화학습으로 연산 노드만 선택
+
+경로는 지금처럼 최단 경로 알고리즘이 계산하고, 강화학습은 작업을 SAT-0, SAT-3, SAT-7 중 어디에 보낼지만 결정해.
+
+입력 상태
+- 각 연산 위성까지의 네트워크 지연
+- 위성별 큐 길이
+- 위성별 예상 연산시간
+- 접근 가능 여부
+
+행동
+- SAT-0 선택
+- SAT-3 선택
+- SAT-7 선택
+- 배치 보류
+
+보상
+- 완료시간이 짧으면 보상
+- 마감시간을 넘기면 벌점
+- 배치 실패면 큰 벌점
+
+강화학습이란
+정답을 미리 알려주는 대신, 여러 번 선택해 보게 하고 결과가 좋으면 점수를 주면서 좋은 선택을 배우게 하는 방식
+
+Cesium
+→ 장애가 어디에서 발생했고 경로가 어떻게 바뀌었는지 시각화
+
+Prometheus
+→ Python 시스템의 수치 데이터를 수집하고 보관
+
+cd /home/juhyeon/projects/hypatia-master/monitoring
+docker compose up -d
+
+http://localhost:9090/targets
+
+Grafana
+→ Prometheus 데이터를 사람이 보기 좋은 관제 화면으로 표시
+
+http://localhost:3000
+
+아이디: admin
+비밀번호: admin
+
+cd /home/juhyeon/projects/hypatia-master/frontend
+npm run copy:data
+npm run dev

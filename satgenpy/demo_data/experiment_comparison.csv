@@ -1,0 +1,4 @@
+scenario,scenario_label,total_jobs,placed_jobs,unplaced_jobs,placement_success_rate_percent,deadline_met_rate_percent,average_queue_wait_ms,maximum_queue_wait_ms,average_total_time_ms,placement_rate_change_pp,deadline_rate_change_pp,queue_wait_ratio_vs_normal,total_time_ratio_vs_normal,additional_unplaced_jobs
+NORMAL_BURST,정상,300,300,0,100.0,13.333333333333334,22423.7941851374,48525.31048357749,24280.593675579323,0.0,0.0,1.0,1.0,0
+FAILED_ISL_0_1_BURST,단일 링크 장애,300,300,0,100.0,11.333333333333332,22494.5278050021,48525.31048357749,24370.871462620165,0.0,-2.0000000000000018,1.003154400155509,1.0037181046002035,0
+MULTI_FAILED_ISL_0_1_10_11_BURST,다중 링크 장애,300,289,11,96.33333333333334,8.650519031141869,55291.74605608053,109333.64490246684,57050.54933807212,-3.666666666666657,-4.682814302191465,2.465762288022076,2.3496356843799835,11

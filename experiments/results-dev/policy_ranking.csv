@@ -1,0 +1,4 @@
+scenario,workload,rank,policy,successful_run_count,placement_success_ratio,deadline_met_ratio,jobs_unplaced,p95_total_time_seconds,node_load_imbalance_ratio
+multi,burst,1,completion_time,3,0.9633333333333334,0.08650519031141868,11.0,105.94254820536645,0.734624160490274
+normal,burst,1,completion_time,3,1.0,0.13333333333333333,0.0,46.12932981369982,0.20016659728003236
+single,burst,1,completion_time,3,1.0,0.11333333333333333,0.0,46.12932981369982,0.12569805089976535

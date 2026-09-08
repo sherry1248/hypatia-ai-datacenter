@@ -1,0 +1,56 @@
+{
+  "generated_at": "2026-07-28T08:00:33.574887+00:00",
+  "requested_matrix": {
+    "scenarios": [
+      "link_failure_recovery"
+    ],
+    "policies": [
+      "compute_only",
+      "network_only",
+      "compute_aware",
+      "completion_time"
+    ],
+    "workloads": [
+      "burst"
+    ],
+    "seeds": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ]
+  },
+  "supported_options": {
+    "scenarios": [
+      "normal",
+      "single",
+      "multi"
+    ],
+    "policies": [
+      "compute_only",
+      "network_only",
+      "compute_aware",
+      "completion_time"
+    ],
+    "workloads": [
+      "demo",
+      "burst"
+    ]
+  },
+  "completed_run_count": 40,
+  "failed_run_count": 0,
+  "percentile_method": "nearest-rank (ceil(p*n), minimum rank 1)",
+  "standard_deviation_method": "sample standard deviation (n-1); null for fewer than 2 values",
+  "node_load_method": "population stddev across all configured compute nodes, including unavailable zero-load nodes",
+  "repository_revision": "8862c72f77c22fabe3e84e821651e5a4cd46239e",
+  "python_version": "3.14.4",
+  "dynamic_scenario": "link_failure_recovery",
+  "distinct_workload_fingerprint_count": 10,
+  "seed_effective": true
+}

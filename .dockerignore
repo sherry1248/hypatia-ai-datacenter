@@ -1,0 +1,14 @@
+.git
+.venv
+.runtime
+**/__pycache__
+**/*.pyc
+frontend/node_modules
+frontend/dist
+satgenpy/ai_datacenter/tests
+satgenpy/tests
+paper
+satviz
+ns3-sat-sim
+integration_tests
+*.log

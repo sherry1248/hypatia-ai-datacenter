@@ -1,0 +1,5 @@
+scenario,workload,rank,policy,successful_run_count,placement_success_ratio,deadline_met_ratio,jobs_unplaced,p95_total_time_seconds,node_load_imbalance_ratio
+link_failure_recovery,burst,1,compute_aware,10,1.0,1.0,0.0,3.7570238379740957,0.7853247083402003
+link_failure_recovery,burst,2,network_only,10,1.0,1.0,0.0,3.7570238379740957,0.7853247083402003
+link_failure_recovery,burst,3,completion_time,10,1.0,1.0,0.0,3.7570238379740957,0.9190400779301676
+link_failure_recovery,burst,4,compute_only,10,1.0,1.0,0.0,3.812773577393595,1.414213562373095

@@ -1,0 +1,210 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "전체 작업 수",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "targets": [{ "expr": "space_ai_datacenter_jobs_total", "format": "time_series", "instant": false, "range": true, "legendFormat": "전체", "refId": "A" }],
+      "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "blue" }, "decimals": 0, "unit": "short" }, "overrides": [] },
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "배치 성공 작업",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "targets": [{ "expr": "space_ai_datacenter_jobs_placed_total", "format": "time_series", "instant": false, "range": true, "legendFormat": "배치 성공", "refId": "A" }],
+      "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "green" }, "decimals": 0, "unit": "short" }, "overrides": [] },
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "미배치 작업",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "targets": [{ "expr": "space_ai_datacenter_jobs_unplaced_total", "instant": true, "legendFormat": "미배치", "refId": "A" }],
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "decimals": 0, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "red", "value": 1 }] }, "unit": "short" }, "overrides": [] },
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" }
+    },
+    {
+      "id": 12,
+      "type": "stat",
+      "title": "장애 링크 수",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "targets": [{ "expr": "space_ai_datacenter_failed_links", "instant": true, "legendFormat": "장애 링크", "refId": "A" }],
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "decimals": 0, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "red", "value": 1 }] }, "unit": "short" }, "overrides": [] },
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "배치 성공률",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 4 },
+      "targets": [{ "expr": "space_ai_datacenter_placement_success_ratio", "instant": true, "legendFormat": "배치 성공률", "refId": "A" }],
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "decimals": 1, "min": 0, "max": 1, "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "yellow", "value": 0.9 }, { "color": "green", "value": 0.99 }] }, "unit": "percentunit" }, "overrides": [] },
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" }
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "마감 준수율",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 4 },
+      "targets": [{ "expr": "space_ai_datacenter_deadline_met_ratio", "instant": true, "legendFormat": "마감 준수율", "refId": "A" }],
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "decimals": 1, "min": 0, "max": 1, "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "yellow", "value": 0.1 }, { "color": "green", "value": 0.5 }] }, "unit": "percentunit" }, "overrides": [] },
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" }
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "평균 큐 대기시간",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 4 },
+      "targets": [{ "expr": "space_ai_datacenter_average_queue_wait_seconds", "format": "time_series", "instant": false, "range": true, "legendFormat": "평균 큐 대기", "refId": "A" }],
+      "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "orange" }, "decimals": 2, "unit": "s" }, "overrides": [] },
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" }
+    },
+    {
+      "id": 7,
+      "type": "stat",
+      "title": "최대 큐 대기시간",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 4 },
+      "targets": [{ "expr": "space_ai_datacenter_maximum_queue_wait_seconds", "format": "time_series", "instant": false, "range": true, "legendFormat": "최대 큐 대기", "refId": "A" }],
+      "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "red" }, "decimals": 2, "unit": "s" }, "overrides": [] },
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" }
+    },
+    {
+      "id": 8,
+      "type": "stat",
+      "title": "평균 전체 처리시간",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 4, "w": 24, "x": 0, "y": 8 },
+      "targets": [{ "expr": "space_ai_datacenter_average_total_time_seconds", "format": "time_series", "instant": false, "range": true, "legendFormat": "평균 처리시간", "refId": "A" }],
+      "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "purple" }, "decimals": 2, "unit": "s" }, "overrides": [] },
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "center", "orientation": "horizontal", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" }
+    },
+    {
+      "id": 9,
+      "type": "bargauge",
+      "title": "노드별 처리 작업 수",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 7, "w": 8, "x": 0, "y": 12 },
+      "targets": [{ "expr": "space_ai_datacenter_node_jobs_total", "instant": true, "legendFormat": "SAT-{{node}}", "refId": "A" }],
+      "fieldConfig": { "defaults": { "color": { "mode": "continuous-GrYlRd" }, "decimals": 0, "min": 0, "unit": "short" }, "overrides": [] },
+      "options": { "displayMode": "gradient", "maxVizHeight": 300, "minVizHeight": 16, "minVizWidth": 8, "namePlacement": "auto", "orientation": "horizontal", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "showUnfilled": true, "sizing": "auto", "valueMode": "color" }
+    },
+    {
+      "id": 10,
+      "type": "bargauge",
+      "title": "노드별 평균 큐 대기시간",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 7, "w": 8, "x": 8, "y": 12 },
+      "targets": [{ "expr": "space_ai_datacenter_node_queue_wait_seconds / clamp_min(space_ai_datacenter_node_jobs_total, 1)", "instant": true, "legendFormat": "SAT-{{node}}", "refId": "A" }],
+      "fieldConfig": { "defaults": { "color": { "mode": "continuous-YlRd" }, "decimals": 2, "min": 0, "unit": "s" }, "overrides": [] },
+      "options": { "displayMode": "gradient", "maxVizHeight": 300, "minVizHeight": 16, "minVizWidth": 8, "namePlacement": "auto", "orientation": "horizontal", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "showUnfilled": true, "sizing": "auto", "valueMode": "color" }
+    },
+    {
+      "id": 11,
+      "type": "bargauge",
+      "title": "노드 가용 상태",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 7, "w": 8, "x": 16, "y": 12 },
+      "targets": [{ "expr": "space_ai_datacenter_node_available", "instant": true, "legendFormat": "SAT-{{node}}", "refId": "A" }],
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "decimals": 0, "min": 0, "max": 1, "mappings": [{ "type": "value", "options": { "0": { "color": "red", "index": 0, "text": "사용 불가" }, "1": { "color": "green", "index": 1, "text": "사용 가능" } } }], "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }, "unit": "short" }, "overrides": [] },
+      "options": { "displayMode": "basic", "maxVizHeight": 300, "minVizHeight": 16, "minVizWidth": 8, "namePlacement": "auto", "orientation": "horizontal", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "showUnfilled": true, "sizing": "auto", "valueMode": "text" }
+    },
+    {
+      "id": 13,
+      "type": "stat",
+      "title": "현재 운영 등급",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 4, "w": 12, "x": 0, "y": 19 },
+      "targets": [{ "expr": "sum(space_ai_datacenter_alert_severity{severity=\"normal\"} * 0) + sum(space_ai_datacenter_alert_severity{severity=\"warning\"} * 1) + sum(space_ai_datacenter_alert_severity{severity=\"critical\"} * 2)", "instant": true, "legendFormat": "운영 등급", "refId": "A" }],
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "decimals": 0, "mappings": [{ "type": "value", "options": { "0": { "color": "green", "index": 0, "text": "정상" }, "1": { "color": "yellow", "index": 1, "text": "주의" }, "2": { "color": "red", "index": 2, "text": "심각" } } }], "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 1 }, { "color": "red", "value": 2 }] }, "unit": "short" }, "overrides": [] },
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "orientation": "horizontal", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "value" }
+    },
+    {
+      "id": 14,
+      "type": "stat",
+      "title": "사용 불가 연산 노드 수",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 4, "w": 12, "x": 12, "y": 19 },
+      "targets": [{ "expr": "space_ai_datacenter_unavailable_nodes", "instant": true, "legendFormat": "사용 불가 노드", "refId": "A" }],
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "decimals": 0, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 1 }, { "color": "red", "value": 2 }] }, "unit": "short" }, "overrides": [] },
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "orientation": "horizontal", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "value" }
+    },
+    {
+      "id": 15, "type": "stat", "title": "활성 장애 수",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 23 },
+      "targets": [{ "expr": "space_ai_datacenter_active_failures", "instant": true, "legendFormat": "활성 장애", "refId": "A" }],
+      "fieldConfig": { "defaults": { "decimals": 0, "unit": "short" }, "overrides": [] },
+      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "center", "orientation": "horizontal", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" }
+    },
+    {
+      "id": 16, "type": "stat", "title": "운영 단계",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 23 },
+      "targets": [{ "expr": "sum(space_ai_datacenter_operational_phase{phase=\"healthy\"} * 0) + sum(space_ai_datacenter_operational_phase{phase=\"degraded\"} * 1) + sum(space_ai_datacenter_operational_phase{phase=\"rerouting\"} * 2) + sum(space_ai_datacenter_operational_phase{phase=\"recovering\"} * 3)", "instant": true, "legendFormat": "운영 단계", "refId": "A" }],
+      "fieldConfig": { "defaults": { "decimals": 0, "mappings": [{ "type": "value", "options": { "0": { "text": "정상" }, "1": { "text": "성능 저하" }, "2": { "text": "우회 중" }, "3": { "text": "복구 중" } } }] }, "overrides": [] },
+      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "center", "orientation": "horizontal", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" }
+    },
+    {
+      "id": 17, "type": "stat", "title": "장애 감지 시간",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 23 },
+      "targets": [{ "expr": "space_ai_datacenter_failure_detection_seconds", "instant": true, "legendFormat": "감지", "refId": "A" }],
+      "fieldConfig": { "defaults": { "decimals": 2, "unit": "s" }, "overrides": [] },
+      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "center", "orientation": "horizontal", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" }
+    },
+    {
+      "id": 18, "type": "stat", "title": "우회 완료 시간",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 23 },
+      "targets": [{ "expr": "space_ai_datacenter_reroute_seconds", "instant": true, "legendFormat": "우회", "refId": "A" }],
+      "fieldConfig": { "defaults": { "decimals": 2, "unit": "s" }, "overrides": [] },
+      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "center", "orientation": "horizontal", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" }
+    },
+    {
+      "id": 19, "type": "stat", "title": "서비스 복구 시간",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 23 },
+      "targets": [{ "expr": "space_ai_datacenter_service_recovery_seconds", "instant": true, "legendFormat": "복구", "refId": "A" }],
+      "fieldConfig": { "defaults": { "decimals": 2, "unit": "s" }, "overrides": [] },
+      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "center", "orientation": "horizontal", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" }
+    },
+    {
+      "id": 20, "type": "stat", "title": "장애 중 미배치 작업",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 23 },
+      "targets": [{ "expr": "space_ai_datacenter_jobs_unplaced_during_failure", "instant": true, "legendFormat": "미배치", "refId": "A" }],
+      "fieldConfig": { "defaults": { "decimals": 0, "unit": "short" }, "overrides": [] },
+      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "center", "orientation": "horizontal", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" }
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 39,
+  "tags": ["space-ai", "leo", "operations"],
+  "templating": { "list": [] },
+  "time": { "from": "now-15m", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "우주 AI 데이터센터 운영 현황",
+  "uid": "space-ai-datacenter",
+  "version": 3,
+  "weekStart": ""
+}

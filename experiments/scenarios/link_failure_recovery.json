@@ -1,0 +1,20 @@
+{
+  "name": "link_failure_recovery",
+  "duration_seconds": 30,
+  "tick_seconds": 1,
+  "events": [
+    {
+      "event_id": "fail-link-0-1",
+      "time_seconds": 10,
+      "type": "link_failure",
+      "target": "0-1",
+      "metadata": {"description": "deterministic demonstration failure"}
+    },
+    {
+      "event_id": "recover-link-0-1",
+      "time_seconds": 20,
+      "type": "link_recovery",
+      "target": "0-1"
+    }
+  ]
+}
