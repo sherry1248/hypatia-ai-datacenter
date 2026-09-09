@@ -1,6 +1,8 @@
 import csv
 import os
 
+from .placement import select_after_failure
+
 from . import (
     AIJob,
     ComputeNode,
@@ -24,13 +26,24 @@ def _build_scenario_rows(
     time_ns: int,
 ) -> list[dict[str, object]]:
     compute_only = select_compute_only(compute_nodes)
-    network_only = select_network_only(network_costs, time_ns)
-    compute_aware = select_compute_aware(
-        compute_nodes, network_costs, time_ns
-    )
-    completion_time = select_completion_time(
-        job, compute_nodes, network_costs, time_ns
-    )
+    reachable = [cost["compute_node"] for cost in network_costs
+                 if cost["time_ns"] == time_ns and cost["status"] == "AVAILABLE"
+                 and cost["compute_node"] in compute_nodes]
+    policy_results = {}
+    for policy in ("network_only", "compute_aware", "completion_time"):
+        result = select_after_failure(
+            policy, reachable, network_costs, time_ns, compute_nodes, job
+        )
+        # Reuse the existing CSV fields for unsuccessful selections.
+        fields = next(row for row in _build_unplaced_rows(scenario, failed_isls, job, time_ns)
+                      if row["algorithm"] == policy)
+        fields.update(node_id=-1, placement_status="FAILED")
+        if result["status"] == "PLACED":
+            fields.update(result["placement"], placement_status="PLACED")
+        policy_results[policy] = fields
+    network_only = policy_results["network_only"]
+    compute_aware = policy_results["compute_aware"]
+    completion_time = policy_results["completion_time"]
 
     compute_node_id = compute_only["node_id"]
     compute_network_cost = next(
@@ -83,6 +96,7 @@ def _build_scenario_rows(
         },
         {
             **common,
+            "placement_status": network_only["placement_status"],
             "algorithm": network_only["algorithm"],
             "selected_node": network_only["node_id"],
             "route": network_only["route"],
@@ -102,6 +116,7 @@ def _build_scenario_rows(
         },
         {
             **common,
+            "placement_status": compute_aware["placement_status"],
             "algorithm": compute_aware["algorithm"],
             "selected_node": compute_aware["node_id"],
             "route": compute_aware["route"],
@@ -121,6 +136,7 @@ def _build_scenario_rows(
         },
         {
             **common,
+            "placement_status": completion_time["placement_status"],
             "algorithm": completion_time["algorithm"],
             "selected_node": completion_time["node_id"],
             "route": completion_time["route"],
@@ -203,6 +219,11 @@ def main() -> None:
         ("HIGH_LOAD_NODE_7", "", "high"),
         ("DYNAMIC_LOAD_NODE_7", "", "dynamic"),
     ]
+    known_failures = {failed for _, failed, _ in scenarios}
+    scenarios.extend(
+        ("FAILED_ISL_" + failed.replace(";", "_").replace("-", "_"), failed, "normal")
+        for failed in sorted({cost["failed_isls"] for cost in network_costs} - known_failures)
+    )
     rows: list[dict[str, object]] = []
     scenario_summaries: list[tuple[str, list[int], int]] = []
     for scenario, failed_isls, compute_state in scenarios:
@@ -232,19 +253,12 @@ def main() -> None:
                 if compute_state == "high" or dynamic_high_load
                 else compute_nodes
             )
-            if timestamp_costs:
-                scenario_rows = _build_scenario_rows(
-                    scenario,
-                    failed_isls,
-                    job,
-                    scenario_compute_nodes,
-                    timestamp_costs,
-                    time_ns,
-                )
-            else:
-                scenario_rows = _build_unplaced_rows(
-                    scenario, failed_isls, job, time_ns
-                )
+            scenario_rows = _build_scenario_rows(
+                scenario, failed_isls, job, scenario_compute_nodes,
+                timestamp_costs, time_ns,
+            )
+            if not timestamp_costs:
+                scenario_rows[0] = _build_unplaced_rows(scenario, failed_isls, job, time_ns)[0]
             rows.extend(scenario_rows)
             processed_times.append(time_ns)
             scenario_row_count += len(scenario_rows)

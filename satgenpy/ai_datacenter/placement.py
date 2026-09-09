@@ -1,4 +1,5 @@
 import csv
+import math
 from typing import TypedDict
 
 from .compute_model import ComputeNode
@@ -84,11 +85,20 @@ def select_after_failure(
     filtered_costs = [
         cost for cost in network_costs
         if cost["compute_node"] in reachable
+        and cost["time_ns"] == time_ns
+        and cost["status"] == "AVAILABLE"
+        and math.isfinite(cost["rtt_ns"]) and cost["rtt_ns"] > 0
+        and cost["route"].split("-")[0] == str(cost["source"])
+        and cost["route"].split("-")[-1] == str(cost["compute_node"])
+        and (policy == "network_only" or cost["compute_node"] in (compute_nodes or {}))
     ]
     filtered_nodes = {
         node_id: node for node_id, node in (compute_nodes or {}).items()
         if node_id in reachable
     }
+
+    if not filtered_costs:
+        return {"status": "FAILED", "selected_compute_node": None}
 
     if policy == "network_only":
         result = select_network_only(filtered_costs, time_ns)

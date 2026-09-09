@@ -31,6 +31,8 @@ import random
 import exputil
 from astropy import units as u
 from ai_datacenter.placement import load_network_costs, select_after_failure
+from ai_datacenter import create_demo_job, get_compute_nodes
+from ai_datacenter.run_demo import main as run_placement_demo, _build_scenario_rows
 
 
 # WGS72 value; taken from https://geographiclib.sourceforge.io/html/NET/NETGeographicLib_8h_source.html
@@ -47,6 +49,50 @@ MAX_GSL_LENGTH_M = math.sqrt(math.pow(SATELLITE_CONE_RADIUS_M, 2) + math.pow(ALT
 
 # ISLs are not allowed to dip below 80 km altitude in order to avoid weather conditions
 MAX_ISL_LENGTH_M = 2 * math.sqrt(math.pow(EARTH_RADIUS + ALTITUDE_M, 2) - math.pow(EARTH_RADIUS + 80000, 2))
+
+
+class TestPlacementAfterFailure(unittest.TestCase):
+    policies = ("network_only", "compute_aware", "completion_time")
+
+    def setUp(self):
+        self.nodes = get_compute_nodes()
+        self.job = create_demo_job()
+        self.cost = dict(time_ns=10, source=12, compute_node=3, route="12-3",
+                         rtt_ns=1000.0, hop_count=1, failed_isls="0-1", status="AVAILABLE")
+
+    def test_three_policies_select_reachable_at_timestamp(self):
+        costs = [self.cost, dict(self.cost, time_ns=9, compute_node=0, route="12-0", rtt_ns=1),
+                 dict(self.cost, compute_node=7, route="12-7", rtt_ns=1)]
+        for policy in self.policies:
+            with self.subTest(policy=policy):
+                result = select_after_failure(policy, [0, 3], costs, 10, self.nodes, self.job)
+                self.assertEqual(result["status"], "PLACED")
+                self.assertEqual(result["selected_compute_node"], 3)
+                self.assertIn(result["selected_compute_node"], [0, 3])
+
+    def test_all_unreachable(self):
+        for policy in self.policies:
+            with self.subTest(policy=policy):
+                result = select_after_failure(policy, [], [self.cost], 10, self.nodes, self.job)
+                self.assertEqual(result, {"status": "FAILED", "selected_compute_node": None})
+
+    def test_no_valid_cost(self):
+        for costs in ([], [dict(self.cost, time_ns=9)], [dict(self.cost, status="UNREACHABLE")],
+                      [dict(self.cost, route="")], [dict(self.cost, rtt_ns=float("inf"))]):
+            for policy in self.policies:
+                with self.subTest(policy=policy, costs=costs):
+                    result = select_after_failure(policy, [3], costs, 10, self.nodes, self.job)
+                    self.assertEqual(result, {"status": "FAILED", "selected_compute_node": None})
+
+    def test_csv_rows_for_three_policies(self):
+        for costs, status in (([self.cost], "PLACED"), ([], "FAILED")):
+            rows = _build_scenario_rows("FAILURE", "0-1", self.job, self.nodes, costs, 10)
+            results = [row for row in rows if row["algorithm"] in self.policies]
+            self.assertEqual(len(results), 3)
+            for row in results:
+                self.assertEqual(row["placement_status"], status)
+                self.assertEqual(row["selected_node"], 3 if costs else -1)
+                self.assertEqual(row["failed_isls"], "0-1")
 
 
 class TestEndToEnd(unittest.TestCase):
@@ -607,6 +653,8 @@ class TestEndToEnd(unittest.TestCase):
                 failed_isls
             )
 
+            run_placement_demo()
+
             if random_failure_enabled:
                 self._export_demo_telemetry(
                     output_analysis_data_dir + "/" + name + "/data/networkx_path_12_to_13.txt",
@@ -641,31 +689,16 @@ class TestEndToEnd(unittest.TestCase):
                         for cost in network_costs
                     )
                 ]
-                placement = select_after_failure(
-                    "network_only",
-                    reachable_compute_nodes,
-                    network_costs,
-                    time_ns=0,
-                )
-                print("\n[Placement after failure]")
-
-                if placement["status"] == "PLACED":
-                    print(
-                        f"selected_compute_node: "
-                        f"SAT-{placement['selected_compute_node']}"
+                for policy in ("network_only", "compute_aware", "completion_time"):
+                    placement = select_after_failure(
+                        policy, reachable_compute_nodes, network_costs, time_ns=0,
+                        compute_nodes=get_compute_nodes(), job=create_demo_job(),
                     )
-                else:
-                    print("selected_compute_node: NONE")
-                    print("status: FAILED")
-
-                if reachable_compute_nodes:
-                    self.assertEqual(placement["status"], "PLACED")
-                    self.assertIn(
-                        placement["selected_compute_node"],
-                        reachable_compute_nodes,
-                    )
-                else:
-                    self.assertEqual(placement["status"], "FAILED")
+                    if reachable_compute_nodes:
+                        self.assertEqual(placement["status"], "PLACED")
+                        self.assertIn(placement["selected_compute_node"], reachable_compute_nodes)
+                    else:
+                        self.assertEqual(placement["status"], "FAILED")
 
             route_filename = (
                 output_analysis_data_dir + "/" + name
