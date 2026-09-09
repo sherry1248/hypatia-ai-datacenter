@@ -150,6 +150,14 @@ class TestEndToEnd(unittest.TestCase):
                     })
 
     @staticmethod
+    def _load_failure_timeline(data_dir):
+        filename = os.path.join(data_dir, "network_failures.csv")
+        if not os.path.isfile(filename):
+            return None
+        with open(filename, newline="") as f_in:
+            return {row["time_ns"]: row["failed_isls"] for row in csv.DictReader(f_in)}
+
+    @staticmethod
     def _export_demo_telemetry(route_filename, rtt_filename, failed_isls):
         demo_data_dir = os.path.join(
             os.path.dirname(os.path.dirname(__file__)), "demo_data"
@@ -159,6 +167,7 @@ class TestEndToEnd(unittest.TestCase):
             demo_data_dir, "routing_events.csv"
         )
 
+        failure_timeline = TestEndToEnd._load_failure_timeline(os.path.dirname(route_filename))
         routes = {}
         with open(route_filename, "r") as f_in:
             for line in f_in:
@@ -178,10 +187,10 @@ class TestEndToEnd(unittest.TestCase):
                 rtts[time_ns] = rtt_ns
 
         all_time_ns = sorted(set(routes) | set(rtts), key=int)
-        append = bool(failed_isls)
+        append = bool(failed_isls) or bool(failure_timeline and any(failure_timeline.values()))
         write_header = not append or not os.path.isfile(output_filename)
         failed_isls_text = ";".join(
-            "%d-%d" % failed_isl for failed_isl in failed_isls
+            "%d-%d" % edge for edge in sorted({tuple(sorted(edge)) for edge in failed_isls})
         )
 
         # The full two-scenario CSV assumes the baseline test runs first.
@@ -201,6 +210,9 @@ class TestEndToEnd(unittest.TestCase):
                 if time_ns in routes:
                     current_route = routes[time_ns]
 
+                current_failed_isls = (
+                    failure_timeline[time_ns] if failure_timeline is not None else failed_isls_text
+                )
                 route = current_route or ""
                 nodes = route.split("-") if route else []
                 valid_route = (
@@ -215,9 +227,9 @@ class TestEndToEnd(unittest.TestCase):
                     "route": route if valid_route else "",
                     "rtt_ns": rtts.get(time_ns, "") if valid_route else "",
                     "hop_count": len(nodes) - 1 if valid_route else 0,
-                    "failed_isls": failed_isls_text,
+                    "failed_isls": current_failed_isls,
                     "status": (
-                        "REROUTED" if failed_isls and valid_route
+                        "REROUTED" if current_failed_isls and valid_route
                         else "NORMAL" if valid_route
                         else "DROPPED"
                     )
@@ -230,10 +242,11 @@ class TestEndToEnd(unittest.TestCase):
         )
         os.makedirs(demo_data_dir, exist_ok=True)
         output_filename = os.path.join(demo_data_dir, "network_costs.csv")
-        append = bool(failed_isls)
+        failure_timeline = TestEndToEnd._load_failure_timeline(data_dir)
+        append = bool(failed_isls) or bool(failure_timeline and any(failure_timeline.values()))
         write_header = not append or not os.path.isfile(output_filename)
         failed_isls_text = ";".join(
-            "%d-%d" % failed_isl for failed_isl in failed_isls
+            "%d-%d" % edge for edge in sorted({tuple(sorted(edge)) for edge in failed_isls})
         )
 
         with open(output_filename, "a" if append else "w", newline="") as f_out:
@@ -279,6 +292,9 @@ class TestEndToEnd(unittest.TestCase):
                     if time_ns in routes:
                         current_route = routes[time_ns]
 
+                    current_failed_isls = (
+                        failure_timeline[time_ns] if failure_timeline is not None else failed_isls_text
+                    )
                     route = current_route or ""
                     nodes = route.split("-") if route else []
                     valid_route = (
@@ -295,7 +311,7 @@ class TestEndToEnd(unittest.TestCase):
                         "route": route if available else "",
                         "rtt_ns": rtt_ns if available else "",
                         "hop_count": len(nodes) - 1 if available else 0,
-                        "failed_isls": failed_isls_text,
+                        "failed_isls": current_failed_isls,
                         "status": "AVAILABLE" if available else "UNREACHABLE"
                     })
 
@@ -562,10 +578,6 @@ class TestEndToEnd(unittest.TestCase):
                                 self.assertNotIn(expected_failed_isl[::-1], hops)
                     self.assertGreater(active_timestamps, 0)
 
-            if random_failure_enabled:
-                local_shell.remove_force_recursive("temp_gen_data")
-                return
-
             # Clean slate start
             local_shell.remove_force_recursive("temp_analysis_data")
             local_shell.make_full_dir("temp_analysis_data")
@@ -594,6 +606,16 @@ class TestEndToEnd(unittest.TestCase):
                 output_analysis_data_dir + "/" + name + "/data",
                 failed_isls
             )
+
+            if random_failure_enabled:
+                self._export_demo_telemetry(
+                    output_analysis_data_dir + "/" + name + "/data/networkx_path_12_to_13.txt",
+                    output_analysis_data_dir + "/" + name + "/data/networkx_rtt_12_to_13.txt",
+                    failed_isls,
+                )
+                local_shell.remove_force_recursive("temp_gen_data")
+                local_shell.remove_force_recursive("temp_analysis_data")
+                return
 
             if dynamic_state_algorithm == "algorithm_free_one_only_over_isls":
                 demo_data_dir = os.path.join(

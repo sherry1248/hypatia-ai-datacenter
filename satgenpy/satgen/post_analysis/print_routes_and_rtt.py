@@ -26,6 +26,8 @@ from satgen.ground_stations import *
 from satgen.tles import *
 import exputil
 import tempfile
+import csv
+import os
 
 
 def print_routes_and_rtt(base_output_dir, satellite_network_dir, dynamic_state_update_interval_ms,
@@ -44,6 +46,20 @@ def print_routes_and_rtt(base_output_dir, satellite_network_dir, dynamic_state_u
     data_dir = base_output_dir + "/data"
     local_shell.make_full_dir(pdf_dir)
     local_shell.make_full_dir(data_dir)
+
+    # Carry timestamp-specific failures to the CSV exporters without changing
+    # route/RTT formats. Older generated datasets have no failure snapshots.
+    failure_csv = data_dir + "/network_failures.csv"
+    if os.path.isfile(satellite_network_dynamic_state_dir + "/failed_isls_0.txt"):
+        with open(failure_csv, "w", newline="") as f_out:
+            writer = csv.writer(f_out)
+            writer.writerow(["time_ns", "failed_isls"])
+            for t in range(0, simulation_end_time_s * 1_000_000_000,
+                           dynamic_state_update_interval_ms * 1_000_000):
+                with open(satellite_network_dynamic_state_dir + "/failed_isls_%d.txt" % t) as f_in:
+                    writer.writerow([t, f_in.read().strip()])
+    elif os.path.isfile(failure_csv):
+        os.remove(failure_csv)
 
     # Variables (load in for each thread such that they don't interfere)
     ground_stations = read_ground_stations_extended(satellite_network_dir + "/ground_stations.txt")
