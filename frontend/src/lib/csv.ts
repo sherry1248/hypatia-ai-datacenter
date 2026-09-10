@@ -49,14 +49,14 @@ export async function loadRoutingEvents(): Promise<RoutingEvent[]> {
 
 export async function loadPlacements(): Promise<PlacementResult[]> {
   return rows(await load('/data/placement_results.csv'), ['time_ns', 'scenario', 'source_node', 'placement_status', 'algorithm', 'selected_node', 'route', 'rtt_ns', 'hop_count', 'failed_isls'])
-    .filter((row) => row.algorithm === 'completion_time' && ['NORMAL', 'FAILED_ISL_0_1', 'MULTI_FAILED_ISL_0_1_10_11'].includes(row.scenario))
-    .map((row) => ({ timeNs: number(row.time_ns, 'time_ns'), scenario: row.scenario as Scenario, sourceNode: number(row.source_node, 'source_node'), placementStatus: row.placement_status as PlacementResult['placementStatus'], selectedNode: row.selected_node === '-1' || row.selected_node === '' ? null : number(row.selected_node, 'selected_node'), route: route(row.route), rttNs: nullableNumber(row.rtt_ns), hopCount: number(row.hop_count, 'hop_count'), failedIsls: links(row.failed_isls) }));
+    .filter((row) => row.algorithm === 'completion_time' && (row.scenario === 'NORMAL' || row.scenario.startsWith('FAILED_ISL_') || row.scenario.startsWith('RANDOM_FAILED_ISL_') || row.scenario === 'MULTI_FAILED_ISL_0_1_10_11'))
+    .map((row) => ({ timeNs: number(row.time_ns, 'time_ns'), scenario: row.scenario as Scenario, sourceNode: number(row.source_node, 'source_node'), placementStatus: (row.placement_status === 'FAILED' ? 'UNPLACED' : row.placement_status) as PlacementResult['placementStatus'], selectedNode: row.placement_status !== 'PLACED' || row.selected_node === '-1' || row.selected_node === '' ? null : number(row.selected_node, 'selected_node'), route: row.placement_status === 'PLACED' ? route(row.route) : [], rttNs: nullableNumber(row.rtt_ns), hopCount: number(row.hop_count, 'hop_count'), failedIsls: links(row.failed_isls) }));
 }
 
 export async function loadScenarioComparisonResults(): Promise<ScenarioComparisonResult[]> {
   return rows(await load('/data/placement_results.csv'), ['scenario', 'placement_status', 'algorithm', 'selected_node', 'queue_wait_time_ms', 'total_time_ms', 'failed_isls'])
     .filter((row) => row.algorithm === 'completion_time' && ['NORMAL', 'FAILED_ISL_0_1', 'MULTI_FAILED_ISL_0_1_10_11'].includes(row.scenario))
-    .map((row) => ({ scenario: row.scenario as Scenario, placementStatus: row.placement_status as ScenarioComparisonResult['placementStatus'], selectedNode: row.selected_node === '-1' || row.selected_node === '' ? null : number(row.selected_node, 'selected_node'), queueWaitMs: nullableNumber(row.queue_wait_time_ms), totalTimeMs: nullableNumber(row.total_time_ms), failedIsls: links(row.failed_isls) }));
+    .map((row) => ({ scenario: row.scenario as Scenario, placementStatus: (row.placement_status === 'FAILED' ? 'UNPLACED' : row.placement_status) as ScenarioComparisonResult['placementStatus'], selectedNode: row.selected_node === '-1' || row.selected_node === '' ? null : number(row.selected_node, 'selected_node'), queueWaitMs: nullableNumber(row.queue_wait_time_ms), totalTimeMs: nullableNumber(row.total_time_ms), failedIsls: links(row.failed_isls) }));
 }
 
 export async function loadScenarioDeadlineRatios(): Promise<ScenarioDeadlineRatios> {

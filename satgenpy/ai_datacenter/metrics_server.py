@@ -322,7 +322,7 @@ def load_metrics_snapshot(
         if row["placement_status"] not in {"PLACED", "UNPLACED"}:
             raise MetricsDataError("workload_experiment_results.csv의 placement_status 값이 올바르지 않습니다")
     for row in matching_placements:
-        if row["placement_status"] not in {"PLACED", "UNPLACED"}:
+        if row["placement_status"] not in {"PLACED", "UNPLACED", "FAILED"}:
             raise MetricsDataError("placement_results.csv의 placement_status 값이 올바르지 않습니다")
         if row["placement_status"] == "PLACED":
             _integer(row, "selected_node", "placement_results.csv")
@@ -462,6 +462,12 @@ class MetricsController:
         self.registry = registry
         self.lock = threading.RLock()
         self.metrics: PrometheusMetrics | None = None
+        event_labels = ("scenario", "algorithm", "source")
+        self.csv_selected_node = Gauge("space_ai_datacenter_csv_selected_node", "선택한 CSV 이벤트의 노드, 실패는 -1", event_labels, registry=registry)
+        self.csv_placement_status = Gauge("space_ai_datacenter_csv_placement_status", "선택한 CSV 이벤트의 배치 상태", event_labels + ("placement_status",), registry=registry)
+        self.csv_active_failures = Gauge("space_ai_datacenter_csv_active_failure_count", "선택한 CSV 이벤트의 활성 장애 링크 수", event_labels, registry=registry)
+        self.csv_event_time = Gauge("space_ai_datacenter_csv_event_time_ns", "선택한 CSV 이벤트 timestamp", event_labels, registry=registry)
+        self.csv_routing_status = Gauge("space_ai_datacenter_csv_routing_status", "동일 timestamp의 라우팅 상태", event_labels + ("routing_status",), registry=registry)
         self.current_snapshot: MetricsSnapshot | None = None
         self.current_alert: OperationalAlert | None = None
         self.snapshot_available = False
@@ -484,6 +490,46 @@ class MetricsController:
             "recovery_metrics": {},
         }
         self.failure_history: list[dict[str, object]] = []
+
+    def placement_event_response(self, time_ns: int, scenario: str, source: int,
+                                 data_directory: Path | None = None) -> dict[str, object]:
+        data_dir = data_directory or Path(__file__).resolve().parents[1] / "demo_data"
+        placements = _read_csv(data_dir / "placement_results.csv",
+                               ("time_ns", "scenario", "source_node", "algorithm", "selected_node", "placement_status", "failed_isls"))
+        routing = _read_csv(data_dir / "routing_events.csv",
+                            ("time_ns", "source", "failed_isls", "status"))
+        events = []
+        for row in placements:
+            if (int(row["time_ns"]) != time_ns or row["scenario"] != scenario
+                    or int(row["source_node"]) != source
+                    or row["algorithm"] not in {"network_only", "compute_aware", "completion_time"}):
+                continue
+            failures = _failed_edges(row["failed_isls"])
+            statuses = sorted({route["status"] for route in routing
+                               if int(route["time_ns"]) == time_ns and int(route["source"]) == source
+                               and _failed_edges(route["failed_isls"]) == failures})
+            placed = row["placement_status"] == "PLACED" and int(row["selected_node"]) >= 0
+            events.append({"time_ns": time_ns, "scenario": scenario, "source": source,
+                           "algorithm": row["algorithm"], "failed_isls": ";".join("%d-%d" % edge for edge in sorted(failures)),
+                           "routing_status": statuses, "placement_status": "PLACED" if placed else "FAILED",
+                           "selected_node": int(row["selected_node"]) if placed else -1,
+                           "active_failure_count": len(failures)})
+        if not events:
+            raise ValueError("해당 timestamp와 시나리오의 placement가 없습니다")
+        with self.lock:
+            # A cursor represents one displayed event; clear previous cursor labels.
+            for gauge in (self.csv_selected_node, self.csv_placement_status, self.csv_active_failures,
+                          self.csv_event_time, self.csv_routing_status):
+                gauge.clear()
+            for event in events:
+                labels = (scenario, event["algorithm"], str(source))
+                self.csv_selected_node.labels(*labels).set(event["selected_node"])
+                self.csv_placement_status.labels(*labels, event["placement_status"]).set(1)
+                self.csv_active_failures.labels(*labels).set(event["active_failure_count"])
+                self.csv_event_time.labels(*labels).set(time_ns)
+                for status in event["routing_status"] or ["NO_DATA"]:
+                    self.csv_routing_status.labels(*labels, status).set(1)
+        return {"time_ns": time_ns, "scenario": scenario, "events": events}
 
     def _append_event(
         self,
@@ -1036,6 +1082,15 @@ def make_wsgi_application(controller: MetricsController) -> WSGIApplication:
 
         if method == "GET" and path == "/metrics":
             return respond("200 OK", controller.render_metrics(), CONTENT_TYPE_LATEST)
+
+        if method == "GET" and path == "/api/placement-event":
+            try:
+                return json_response("200 OK", controller.placement_event_response(
+                    int(query_value("time_ns") or "-1"), query_value("scenario") or "",
+                    int(query_value("source") or "12"),
+                ))
+            except (ValueError, MetricsDataError, OSError) as error:
+                return json_response("400 Bad Request", {"error": str(error)})
 
         if method == "GET" and path == "/api/scenario":
             return json_response("200 OK", controller.scenario_response())

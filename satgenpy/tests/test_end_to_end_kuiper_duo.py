@@ -196,12 +196,13 @@ class TestEndToEnd(unittest.TestCase):
                     })
 
     @staticmethod
-    def _load_failure_timeline(data_dir):
+    def _load_failure_timeline(data_dir, column="failed_isls"):
         filename = os.path.join(data_dir, "network_failures.csv")
         if not os.path.isfile(filename):
             return None
         with open(filename, newline="") as f_in:
-            return {row["time_ns"]: row["failed_isls"] for row in csv.DictReader(f_in)}
+            return {row["time_ns"]: row.get(column, "EXPLICIT" if row["failed_isls"] else "NONE")
+                    for row in csv.DictReader(f_in)}
 
     @staticmethod
     def _export_demo_telemetry(route_filename, rtt_filename, failed_isls):
@@ -214,6 +215,7 @@ class TestEndToEnd(unittest.TestCase):
         )
 
         failure_timeline = TestEndToEnd._load_failure_timeline(os.path.dirname(route_filename))
+        failure_modes = TestEndToEnd._load_failure_timeline(os.path.dirname(route_filename), "failure_mode")
         routes = {}
         with open(route_filename, "r") as f_in:
             for line in f_in:
@@ -245,7 +247,7 @@ class TestEndToEnd(unittest.TestCase):
                 f_out,
                 fieldnames=[
                     "time_ns", "source", "destination", "route", "rtt_ns",
-                    "hop_count", "failed_isls", "status"
+                    "hop_count", "failed_isls", "status", "failure_mode"
                 ]
             )
             if write_header:
@@ -274,6 +276,8 @@ class TestEndToEnd(unittest.TestCase):
                     "rtt_ns": rtts.get(time_ns, "") if valid_route else "",
                     "hop_count": len(nodes) - 1 if valid_route else 0,
                     "failed_isls": current_failed_isls,
+                    "failure_mode": (failure_modes[time_ns] if failure_modes is not None
+                                     else "EXPLICIT" if failed_isls else "NONE"),
                     "status": (
                         "REROUTED" if current_failed_isls and valid_route
                         else "NORMAL" if valid_route
@@ -289,6 +293,7 @@ class TestEndToEnd(unittest.TestCase):
         os.makedirs(demo_data_dir, exist_ok=True)
         output_filename = os.path.join(demo_data_dir, "network_costs.csv")
         failure_timeline = TestEndToEnd._load_failure_timeline(data_dir)
+        failure_modes = TestEndToEnd._load_failure_timeline(data_dir, "failure_mode")
         append = bool(failed_isls) or bool(failure_timeline and any(failure_timeline.values()))
         write_header = not append or not os.path.isfile(output_filename)
         failed_isls_text = ";".join(
@@ -300,7 +305,7 @@ class TestEndToEnd(unittest.TestCase):
                 f_out,
                 fieldnames=[
                     "time_ns", "source", "compute_node", "route", "rtt_ns",
-                    "hop_count", "failed_isls", "status"
+                    "hop_count", "failed_isls", "status", "failure_mode"
                 ]
             )
             if write_header:
@@ -358,6 +363,8 @@ class TestEndToEnd(unittest.TestCase):
                         "rtt_ns": rtt_ns if available else "",
                         "hop_count": len(nodes) - 1 if available else 0,
                         "failed_isls": current_failed_isls,
+                        "failure_mode": (failure_modes[time_ns] if failure_modes is not None
+                                         else "EXPLICIT" if failed_isls else "NONE"),
                         "status": "AVAILABLE" if available else "UNREACHABLE"
                     })
 

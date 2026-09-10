@@ -207,31 +207,59 @@ def main() -> None:
     job = create_demo_job()
     compute_nodes = get_compute_nodes()
     network_costs = load_network_costs(network_costs_path)
+    # Preserve explicit provenance; the placement cost loader ignores extra columns.
+    with open(network_costs_path, newline="") as f_in:
+        for cost, row in zip(network_costs, csv.DictReader(f_in)):
+            mode = row.get("failure_mode") or ("EXPLICIT" if cost["failed_isls"] else "NONE")
+            if mode not in {"NONE", "EXPLICIT", "RANDOM"}:
+                raise ValueError("invalid failure_mode: %s" % mode)
+            cost["failure_mode"] = mode
+    # Each export writes one increasing timeline per source/compute node.
+    # A timestamp reset starts a new export, not a continuation of NORMAL.
+    node_timelines = {}
+    for cost in network_costs:
+        key = (cost["source"], cost["compute_node"])
+        timelines = node_timelines.setdefault(key, [])
+        if not timelines or cost["time_ns"] <= timelines[-1][-1]["time_ns"]:
+            timelines.append([])
+        timelines[-1].append(cost)
+    random_timelines = {}
+    for timelines in node_timelines.values():
+        for timeline in timelines:
+            random_failures = {cost["failed_isls"] for cost in timeline
+                               if cost["failure_mode"] == "RANDOM"}
+            for failed in random_failures:
+                random_timelines.setdefault(failed, []).extend(timeline)
+
     high_load_compute_nodes = {
         node_id: node.copy() for node_id, node in compute_nodes.items()
     }
     high_load_compute_nodes[7]["gpu_util_percent"] = 95.0
     high_load_compute_nodes[7]["queue_length"] = 10
     scenarios = [
-        ("NORMAL", "", "normal"),
-        ("FAILED_ISL_0_1", "0-1", "normal"),
-        ("MULTI_FAILED_ISL_0_1_10_11", "0-1;10-11", "normal"),
-        ("HIGH_LOAD_NODE_7", "", "high"),
-        ("DYNAMIC_LOAD_NODE_7", "", "dynamic"),
+        ("NORMAL", "", "normal", "NONE"),
+        ("FAILED_ISL_0_1", "0-1", "normal", "EXPLICIT"),
+        ("MULTI_FAILED_ISL_0_1_10_11", "0-1;10-11", "normal", "EXPLICIT"),
+        ("HIGH_LOAD_NODE_7", "", "high", "NONE"),
+        ("DYNAMIC_LOAD_NODE_7", "", "dynamic", "NONE"),
     ]
-    known_failures = {failed for _, failed, _ in scenarios}
+    known_failures = {(failed, mode) for _, failed, _, mode in scenarios}
     scenarios.extend(
-        ("FAILED_ISL_" + failed.replace(";", "_").replace("-", "_"), failed, "normal")
-        for failed in sorted({cost["failed_isls"] for cost in network_costs} - known_failures)
+        (("RANDOM_FAILED_ISL_" if mode == "RANDOM" else "FAILED_ISL_")
+         + failed.replace(";", "_").replace("-", "_"), failed, "normal", mode)
+        for failed, mode in sorted({(cost["failed_isls"], cost["failure_mode"])
+                                    for cost in network_costs} - known_failures)
     )
     rows: list[dict[str, object]] = []
     scenario_summaries: list[tuple[str, list[int], int]] = []
-    for scenario, failed_isls, compute_state in scenarios:
+    for scenario, failed_isls, compute_state, failure_mode in scenarios:
         scenario_costs = [
             cost
             for cost in network_costs
-            if cost["failed_isls"] == failed_isls
+            if cost["failed_isls"] == failed_isls and cost["failure_mode"] == failure_mode
         ]
+        if failure_mode == "RANDOM":
+            scenario_costs = random_timelines[failed_isls]
         time_values = sorted({
             cost["time_ns"] for cost in scenario_costs
         })
@@ -244,6 +272,9 @@ def main() -> None:
                 and cost["status"] == "AVAILABLE"
                 and cost["compute_node"] in compute_nodes
             ]
+            current_state = next(cost for cost in scenario_costs if cost["time_ns"] == time_ns)
+            current_failed_isls = current_state["failed_isls"]
+            current_failure_mode = current_state["failure_mode"]
             dynamic_high_load = (
                 compute_state == "dynamic"
                 and 60_000_000_000 <= time_ns < 120_000_000_000
@@ -254,11 +285,13 @@ def main() -> None:
                 else compute_nodes
             )
             scenario_rows = _build_scenario_rows(
-                scenario, failed_isls, job, scenario_compute_nodes,
+                scenario, current_failed_isls, job, scenario_compute_nodes,
                 timestamp_costs, time_ns,
             )
             if not timestamp_costs:
-                scenario_rows[0] = _build_unplaced_rows(scenario, failed_isls, job, time_ns)[0]
+                scenario_rows[0] = _build_unplaced_rows(scenario, current_failed_isls, job, time_ns)[0]
+            for row in scenario_rows:
+                row["failure_mode"] = current_failure_mode
             rows.extend(scenario_rows)
             processed_times.append(time_ns)
             scenario_row_count += len(scenario_rows)
@@ -289,6 +322,7 @@ def main() -> None:
         "compute_time_ms",
         "total_time_ms",
         "failed_isls",
+        "failure_mode",
     ]
     with open(output_path, "w", newline="") as f_out:
         writer = csv.DictWriter(f_out, fieldnames=fieldnames)

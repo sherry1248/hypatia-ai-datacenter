@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { CesiumGlobe } from './components/CesiumGlobe';
 import { EventLog } from './components/EventLog';
 import { EventCenter } from './components/EventCenter';
@@ -12,7 +13,7 @@ import { OperationsHeader } from './components/OperationsHeader';
 import { RouteInfoPanel } from './components/RouteInfoPanel';
 import { RecoveryPanel } from './components/RecoveryPanel';
 import { ScenarioComparisonPanel } from './components/ScenarioComparisonPanel';
-import { loadNetworkCosts, loadNodePositions, loadPlacements, loadRoutingEvents, loadScenarioComparisonResults, loadScenarioDeadlineRatios, nearestTime } from './lib/csv';
+import { loadNetworkCosts, loadNodePositions, loadPlacements, loadRoutingEvents, loadScenarioComparisonResults, loadScenarioDeadlineRatios } from './lib/csv';
 import { FRONTEND_SCENARIO_BY_BACKEND, getBackendScenario, setBackendScenario } from './lib/scenarioApi';
 import { getOperationalStatus } from './lib/statusApi';
 import { getNodeDetail } from './lib/drilldownApi';
@@ -21,7 +22,7 @@ import type { AlertSeverity, ComputeNodeDetail, DisplayOptions, EventEntry, Fail
 const timestampLabel = (timeNs: number) => `${(timeNs / 1e9).toFixed(1)}초`;
 const nodeName = (node: NodePosition) => `${node.nodeType === 'SATELLITE' ? 'SAT' : 'GS'}-${node.nodeId}`;
 const scenarioFailureKey: Record<Scenario, string> = { NORMAL: '', FAILED_ISL_0_1: '0-1', MULTI_FAILED_ISL_0_1_10_11: '0-1;10-11' };
-const failureKey = (links: Link[]) => links.map(([a, b]) => `${a}-${b}`).join(';');
+const failureKey = (links: Link[]) => [...new Set(links.map(([a, b]) => `${Math.min(a, b)}-${Math.max(a, b)}`))].sort().join(';');
 const edgesOf = (paths: number[][], failed: Link[]): Link[] => {
   const failedKeys = new Set(failed.map(([a, b]) => `${Math.min(a, b)}-${Math.max(a, b)}`)); const found = new Map<string, Link>();
   paths.forEach((path) => path.slice(0, -1).forEach((from, index) => { const to = path[index + 1]; const key = `${Math.min(from, to)}-${Math.max(from, to)}`; if (!failedKeys.has(key)) found.set(key, [from, to]); }));
@@ -31,6 +32,9 @@ const edgesOf = (paths: number[][], failed: Link[]): Link[] => {
 export default function App() {
   const [allNodes, setAllNodes] = useState<NodePosition[]>([]); const [networkCosts, setNetworkCosts] = useState<NetworkCost[]>([]); const [routingEvents, setRoutingEvents] = useState<RoutingEvent[]>([]); const [placements, setPlacements] = useState<PlacementResult[]>([]);
   const [timeIndex, setTimeIndex] = useState(0); const [scenario, setScenario] = useState<Scenario>('NORMAL'); const [selectedKey, setSelectedKey] = useState<string | null>(null); const [failedSelection, setFailedSelection] = useState<FailedLinkSelection | null>(null);
+  const [csvSelectorSlot, setCsvSelectorSlot] = useState<HTMLDivElement | null>(null);
+  const [csvScenario, setCsvScenario] = useState<string | null>(null);
+  const [csvSyncWarning, setCsvSyncWarning] = useState<string | null>(null);
   const [playing, setPlaying] = useState(false); const [error, setError] = useState<string | null>(null); const [options, setOptions] = useState<DisplayOptions>({ allLinks: true, selectedRoute: true, failedLinks: true, nodeLabels: false });
   const [syncState, setSyncState] = useState<ScenarioSyncState>('syncing'); const [syncWarning, setSyncWarning] = useState<string | null>(null); const [operationalStatus, setOperationalStatus] = useState<OperationalStatus | null>(null); const [statusDisconnected, setStatusDisconnected] = useState(false);
   const [comparisonResults, setComparisonResults] = useState<ScenarioComparisonResult[]>([]); const [comparisonLoading, setComparisonLoading] = useState(true); const [comparisonWarning, setComparisonWarning] = useState<string | null>(null);
@@ -65,20 +69,49 @@ export default function App() {
     return () => { active = false; };
   }, [addEvent, refreshOperationalStatus]);
 
+  useEffect(() => {
+    const scenarioLabel = document.querySelector('.globe-panel .layer-controls .scenario-select');
+    if (!scenarioLabel) return;
+    const slot = document.createElement('div');
+    scenarioLabel.after(slot);
+    setCsvSelectorSlot(slot);
+    return () => slot.remove();
+  }, []);
+
   const timestamps = useMemo(() => [...new Set(allNodes.map((node) => node.timeNs))].sort((a, b) => a - b), [allNodes]); const currentTime = timestamps[timeIndex] ?? 0;
   const nodes = useMemo(() => allNodes.filter((node) => node.timeNs === currentTime), [allNodes, currentTime]);
-  const failedLinks = useMemo<Link[]>(() => scenario === 'NORMAL' ? [] : scenario === 'FAILED_ISL_0_1' ? [[0, 1]] : [[0, 1], [10, 11]], [scenario]);
-  const dynamicFailureLink = useMemo<Link[]>(() => { const failure = operationalStatus?.last_failure; if (!failure || failure.type !== 'link_failure') return []; const parts = failure.target.split('-').map(Number); return parts.length === 2 && parts.every(Number.isFinite) ? [[parts[0], parts[1]]] : []; }, [operationalStatus?.last_failure]);
-  const visualFailedLinks = operationalStatus?.last_failure ? (operationalStatus.last_failure.status === 'resolved' ? [] : dynamicFailureLink) : failedLinks;
-  const recoveredLinks = operationalStatus?.last_failure?.status === 'resolved' ? dynamicFailureLink : [];
-  const scenarioCosts = useMemo(() => networkCosts.filter((row) => failureKey(row.failedIsls) === scenarioFailureKey[scenario]), [networkCosts, scenario]);
-  const costTime = nearestTime(scenarioCosts, currentTime); const currentCosts = useMemo(() => scenarioCosts.filter((row) => row.timeNs === costTime), [scenarioCosts, costTime]);
-  const scenarioRouting = useMemo(() => routingEvents.filter((row) => failureKey(row.failedIsls) === scenarioFailureKey[scenario]), [routingEvents, scenario]);
-  const routingTime = nearestTime(scenarioRouting, currentTime); const currentRouting = useMemo(() => scenarioRouting.filter((row) => row.timeNs === routingTime), [scenarioRouting, routingTime]);
-  const scenarioPlacements = useMemo(() => placements.filter((row) => row.scenario === scenario), [placements, scenario]); const placementTime = nearestTime(scenarioPlacements, currentTime);
-  const activePlacement = useMemo(() => scenarioPlacements.find((row) => row.timeNs === placementTime) ?? null, [scenarioPlacements, placementTime]);
-  const normalLinks = useMemo(() => edgesOf([...currentCosts.map((row) => row.route), ...currentRouting.map((row) => row.route)], failedLinks), [currentCosts, currentRouting, failedLinks]);
-  const unavailableNodeIds = useMemo(() => new Set([...(operationalStatus?.nodes.filter((node) => !node.available).map((node) => node.node) ?? []), ...currentRouting.filter((row) => row.status === 'DROPPED').map((row) => row.destination)]), [operationalStatus, currentRouting]);
+  const csvScenarios = useMemo(() => [...new Set(placements.map((row) => String(row.scenario)))].filter((name) => !(name in scenarioFailureKey)), [placements]);
+  const eventScenario = csvScenario ?? scenario;
+  const activePlacement = useMemo(() => placements.find((row) => row.scenario === eventScenario && row.timeNs === currentTime) ?? null, [placements, eventScenario, currentTime]);
+  const failedLinks = activePlacement?.failedIsls ?? [];
+  const eventFailureKey = failureKey(failedLinks);
+  const currentCosts = useMemo(() => activePlacement ? networkCosts.filter((row) => row.timeNs === currentTime && row.source === activePlacement.sourceNode && failureKey(row.failedIsls) === eventFailureKey) : [], [networkCosts, currentTime, activePlacement, eventFailureKey]);
+  const currentRouting = useMemo(() => activePlacement ? routingEvents.filter((row) => row.timeNs === currentTime && row.source === activePlacement.sourceNode && failureKey(row.failedIsls) === eventFailureKey) : [], [routingEvents, currentTime, activePlacement, eventFailureKey]);
+  const visualFailedLinks = failedLinks;
+  const recoveredLinks = useMemo<Link[]>(() => {
+    const failure = operationalStatus?.last_failure;
+    if (operationalStatus?.simulation_time_seconds !== currentTime / 1e9 || failure?.status !== 'resolved' || failure.type !== 'link_failure') return [];
+    const parts = failure.target.split('-').map(Number);
+    return parts.length === 2 && parts.every(Number.isFinite) ? [[parts[0], parts[1]]] : [];
+  }, [operationalStatus, currentTime]);
+  const normalLinks = useMemo(() => edgesOf([...currentCosts.map((row) => row.route), ...currentRouting.map((row) => row.route)], failedLinks), [currentCosts, currentRouting, eventFailureKey]);
+  const unavailableNodeIds = useMemo(() => new Set(currentCosts.filter((row) => row.status !== 'AVAILABLE').map((row) => row.computeNode)), [currentCosts]);
+  useEffect(() => {
+    const controller = new AbortController();
+    if (!activePlacement) { setCsvSyncWarning(null); return; }
+    const query = new URLSearchParams({ time_ns: String(currentTime), scenario: eventScenario, source: String(activePlacement.sourceNode) });
+    fetch(`/api/placement-event?${query}`, { signal: controller.signal }).then((response) => {
+      if (!response.ok) throw new Error('CSV 이벤트 동기화 실패');
+      return response.json();
+    }).then((payload) => {
+      if (controller.signal.aborted) return;
+      const event = payload.events?.find((row: { algorithm: string }) => row.algorithm === 'completion_time');
+      const expectedStatus = activePlacement.placementStatus === 'PLACED' ? 'PLACED' : 'FAILED';
+      if (!event || event.time_ns !== currentTime || event.selected_node !== (activePlacement.selectedNode ?? -1) || event.placement_status !== expectedStatus || event.failed_isls.split(';').filter(Boolean).sort().join(';') !== eventFailureKey) throw new Error('CSV 사본 불일치');
+      setCsvSyncWarning(null);
+    }).catch(() => { if (!controller.signal.aborted) setCsvSyncWarning('현재 CSV 이벤트의 메트릭 동기화 실패'); });
+    return () => controller.abort();
+  }, [currentTime, eventScenario, activePlacement]);
   const selected = useMemo(() => selectedKey ? nodes.find((node) => `${node.nodeType}-${node.nodeId}` === selectedKey) ?? null : null, [nodes, selectedKey]);
 
   useEffect(() => { if (!playing || timestamps.length < 2) return; const timer = window.setInterval(() => setTimeIndex((index) => (index + 1) % timestamps.length), 500); return () => window.clearInterval(timer); }, [playing, timestamps.length]);
@@ -87,7 +120,7 @@ export default function App() {
   const previousUnreachable = useRef(false); useEffect(() => { const unreachable = activePlacement?.placementStatus === 'UNPLACED' || currentRouting.some((row) => row.status === 'DROPPED'); if (unreachable && !previousUnreachable.current) addEvent('경로 도달 불가 · 배치 또는 라우팅 실패', 'info', 'ALERT'); previousUnreachable.current = unreachable; }, [activePlacement, currentRouting, addEvent]);
 
   const changeScenario = (value: Scenario) => {
-    setScenario(value); setFailedSelection(null); setSyncState('syncing'); setSyncWarning(null); addEvent(`시나리오 변경 · ${SCENARIO_LABELS[value]}`, 'info', 'SCENARIO');
+    setCsvScenario(null); setScenario(value); setFailedSelection(null); setSyncState('syncing'); setSyncWarning(null); addEvent(`시나리오 변경 · ${SCENARIO_LABELS[value]}`, 'info', 'SCENARIO');
     const failures = value === 'NORMAL' ? '' : value === 'FAILED_ISL_0_1' ? 'SAT-0 ↔ SAT-1' : 'SAT-0 ↔ SAT-1, SAT-10 ↔ SAT-11'; if (failures) addEvent(`장애 링크 감지 · ${failures}`, 'info', 'ALERT');
     const requestId = ++syncRequestId.current;
     const synchronization = syncQueue.current.catch(() => undefined).then(() => setBackendScenario(value)).then((backendScenario) => {
@@ -107,7 +140,7 @@ export default function App() {
   return <main className="app-shell">
     <OperationsHeader timeNs={currentTime} playing={playing} onTogglePlayback={() => setPlaying((value) => !value)} />
     <div className="workspace"><ObjectTree nodes={nodes} selected={selected} onSelect={(node) => selectNode(node, 'tree')} />
-      <section className="globe-panel"><LayerControls scenario={scenario} options={options} onScenarioChange={changeScenario} onOptionsChange={setOptions} /><ScenarioComparisonPanel results={comparisonResults} networkCosts={networkCosts} loading={comparisonLoading} warning={comparisonWarning} currentScenario={scenario} onViewScenario={changeScenario} deadlineRatios={deadlineRatios} /><CesiumGlobe nodes={nodes} selected={selected} normalLinks={normalLinks} route={activePlacement?.route ?? []} failedLinks={visualFailedLinks} recoveredLinks={recoveredLinks} unavailableNodeIds={unavailableNodeIds} options={options} onSelect={(node) => selectNode(node, 'globe')} onFailedLinkSelect={(link) => { setFailedSelection(link); addEvent(`장애 링크 선택 · SAT-${link.from} ↔ SAT-${link.to}`, 'info', 'ALERT'); }} />
+      <section className="globe-panel">{csvSelectorSlot && createPortal(<label className="scenario-select csv-scenario-select">CSV 장애 시나리오 <select value={csvScenario ?? ''} onChange={(event) => setCsvScenario(event.target.value || null)}><option value="">기존 시나리오 선택 사용</option>{csvScenarios.map((name) => <option key={name} value={name}>{name}</option>)}</select></label>, csvSelectorSlot)}<output aria-live="polite">T + {timestampLabel(currentTime)} · {currentRouting.map((row) => row.status).join(', ') || '라우팅 데이터 없음'} · {activePlacement ? (activePlacement.placementStatus === 'PLACED' && activePlacement.selectedNode !== null ? `PLACED · SAT-${activePlacement.selectedNode}` : 'FAILED · selected_node=-1') : '배치 데이터 없음'}{csvSyncWarning ? ` · ${csvSyncWarning}` : ''}</output><LayerControls scenario={scenario} options={options} onScenarioChange={changeScenario} onOptionsChange={setOptions} /><ScenarioComparisonPanel results={comparisonResults} networkCosts={networkCosts} loading={comparisonLoading} warning={comparisonWarning} currentScenario={scenario} onViewScenario={changeScenario} deadlineRatios={deadlineRatios} /><CesiumGlobe computeNodeId={activePlacement?.selectedNode ?? null} nodes={nodes} selected={selected} normalLinks={normalLinks} route={activePlacement?.route ?? []} failedLinks={visualFailedLinks} recoveredLinks={recoveredLinks} unavailableNodeIds={unavailableNodeIds} options={options} onSelect={(node) => selectNode(node, 'globe')} onFailedLinkSelect={(link) => { setFailedSelection(link); addEvent(`장애 링크 선택 · SAT-${link.from} ↔ SAT-${link.to}`, 'info', 'ALERT'); }} />
         <div className="timeline-control"><div><strong>시뮬레이션 타임라인</strong><span>{timestamps.length ? `${timeIndex + 1} / ${timestamps.length}` : '데이터 로드 중'} · {operationalStatus ? ({ healthy: '정상', degraded: '성능 저하', rerouting: '우회 중', recovering: '복구 중' } as const)[operationalStatus.operational_phase] : '상태 대기'}</span></div><input aria-label="시뮬레이션 시점" type="range" min="0" max={Math.max(timestamps.length - 1, 0)} value={timeIndex} disabled={!timestamps.length} onChange={(event) => { setPlaying(false); setTimeIndex(Number(event.target.value)); }} /><output>T + {timestampLabel(currentTime)}</output><div className="timeline-events">{operationalStatus && operationalStatus.simulation_time_seconds > 0 && ([['failure', operationalStatus.recovery_metrics.failure_occurred_at_seconds, '장애 발생'], ['detection', operationalStatus.recovery_metrics.failure_detected_at_seconds, '감지'], ['reroute', operationalStatus.recovery_metrics.reroute_completed_at_seconds, '우회 완료'], ['recovery', operationalStatus.last_failure?.recovered_at_seconds, '복구'], ['healthy', operationalStatus.recovery_metrics.service_recovered_at_seconds, '정상 복원']] as const).map(([kind, value, label]) => value == null ? null : <i key={kind} className={kind} title={`${label} · ${value}초`} style={{ left: `${Math.min(100, Math.max(0, value / operationalStatus.simulation_time_seconds * 100))}%` }} />)}</div></div>
       </section><div className="right-rail"><NodeDetailPanel node={selected} unavailable={selected ? unavailableNodeIds.has(selected.nodeId) : false} detail={nodeDetail} detailStale={nodeDetailStale} /><RecoveryPanel status={operationalStatus} stale={statusDisconnected} /><MonitoringStatus scenario={scenario} status={operationalStatus} disconnected={statusDisconnected} syncState={syncState} syncWarning={syncWarning} incidents={incidents} incidentsStale={incidentsStale} /><IncidentCenter onData={handleIncidentData} /><JobExplorer nodes={operationalStatus?.nodes.map((node) => node.node) ?? [0, 3, 7]} refreshKey={operationalStatus?.updated_at} /><EventCenter /><RouteInfoPanel route={activePlacement} failedLink={failedSelection} scenario={scenario} timeNs={currentTime} /></div>
     </div><EventLog events={events} />

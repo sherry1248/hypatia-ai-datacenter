@@ -3,13 +3,13 @@ import { Cartesian2, Cartesian3, Color, ConstantPositionProperty, ConstantProper
 import type { DisplayOptions, FailedLinkSelection, Link, NodePosition } from '../types';
 
 interface Props {
-  nodes: NodePosition[]; selected: NodePosition | null; normalLinks: Link[]; route: number[]; failedLinks: Link[]; recoveredLinks: Link[];
+  computeNodeId: number | null; nodes: NodePosition[]; selected: NodePosition | null; normalLinks: Link[]; route: number[]; failedLinks: Link[]; recoveredLinks: Link[];
   unavailableNodeIds: Set<number>; options: DisplayOptions; onSelect: (node: NodePosition) => void; onFailedLinkSelect: (link: FailedLinkSelection) => void;
 }
 const keyOf = (node: NodePosition) => `${node.nodeType}-${node.nodeId}`;
 const linkKey = ([from, to]: Link) => `${Math.min(from, to)}-${Math.max(from, to)}`;
 
-export function CesiumGlobe({ nodes, selected, normalLinks, route, failedLinks, recoveredLinks, unavailableNodeIds, options, onSelect, onFailedLinkSelect }: Props) {
+export function CesiumGlobe({ computeNodeId, nodes, selected, normalLinks, route, failedLinks, recoveredLinks, unavailableNodeIds, options, onSelect, onFailedLinkSelect }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewerRef = useRef<Viewer>();
   const nodeEntities = useRef(new Map<string, Entity>());
@@ -52,9 +52,13 @@ export function CesiumGlobe({ nodes, selected, normalLinks, route, failedLinks, 
       } else (entity.position as ConstantPositionProperty).setValue(position);
       entity.show = true;
       if (entity.point) { entity.point.color = new ConstantProperty(unavailable ? Color.RED : compute ? Color.fromCssColorString('#f7b955') : station ? Color.fromCssColorString('#40dfb1') : Color.fromCssColorString('#54a8ff')); entity.point.outlineColor = new ConstantProperty(unavailable ? Color.fromCssColorString('#ffb0b0') : Color.fromCssColorString('#06131e')); }
-      if (entity.label) entity.label.show = new ConstantProperty(options.nodeLabels);
+      if (entity.point && node.nodeId === computeNodeId) entity.point.outlineColor = new ConstantProperty(Color.YELLOW);
+      if (entity.label) {
+        entity.label.show = new ConstantProperty(options.nodeLabels || node.nodeId === computeNodeId);
+        entity.label.text = new ConstantProperty(`${station ? 'GS' : 'SAT'}-${node.nodeId}${node.nodeId === computeNodeId ? ' · SELECTED' : ''}`);
+      }
     });
-  }, [nodes, unavailableNodeIds, options.nodeLabels]);
+  }, [nodes, unavailableNodeIds, options.nodeLabels, computeNodeId]);
 
   useEffect(() => {
     const viewer = viewerRef.current; if (!viewer) return;

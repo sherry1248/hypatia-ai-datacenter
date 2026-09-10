@@ -53,11 +53,19 @@ def print_routes_and_rtt(base_output_dir, satellite_network_dir, dynamic_state_u
     if os.path.isfile(satellite_network_dynamic_state_dir + "/failed_isls_0.txt"):
         with open(failure_csv, "w", newline="") as f_out:
             writer = csv.writer(f_out)
-            writer.writerow(["time_ns", "failed_isls"])
+            writer.writerow(["time_ns", "failed_isls", "failure_mode"])
             for t in range(0, simulation_end_time_s * 1_000_000_000,
                            dynamic_state_update_interval_ms * 1_000_000):
                 with open(satellite_network_dynamic_state_dir + "/failed_isls_%d.txt" % t) as f_in:
-                    writer.writerow([t, f_in.read().strip()])
+                    failed_isls = f_in.read().strip()
+                mode_path = satellite_network_dynamic_state_dir + "/failure_mode_%d.txt" % t
+                if os.path.isfile(mode_path):
+                    with open(mode_path) as f_in:
+                        failure_mode = f_in.read().strip()
+                else:
+                    # Legacy snapshots carry no random provenance.
+                    failure_mode = "EXPLICIT" if failed_isls else "NONE"
+                writer.writerow([t, failed_isls, failure_mode])
     elif os.path.isfile(failure_csv):
         os.remove(failure_csv)
 

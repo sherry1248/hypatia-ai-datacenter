@@ -144,6 +144,12 @@ def algorithm_free_one_only_over_isls(
         routing_graph.remove_edges_from([random_failed_isl])
         active_failed_isls.add(tuple(sorted(random_failed_isl)))
     active_failed_isls = sorted(active_failed_isls)
+    failure_mode = (
+        "RANDOM" if random_failure_active and random_failed_isl is not None
+        else "EXPLICIT" if active_failed_isls else "NONE"
+    )
+    with open(output_dynamic_state_dir + "/failure_mode_%d.txt" % time_since_epoch_ns, "w") as f_out:
+        f_out.write(failure_mode)
     # Persist the effective state alongside each forwarding-state snapshot.
     with open(output_dynamic_state_dir + "/failed_isls_%d.txt" % time_since_epoch_ns, "w") as f_out:
         f_out.write(";".join("%d-%d" % edge for edge in active_failed_isls))
